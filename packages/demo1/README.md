@@ -2,6 +2,8 @@
 
 创建基础场景，并展示基础几何体
 
+[文档](https://threejs.org/docs/index.html#manual/zh/introduction/Drawing-lines)
+
 ## 做了什么
 
 - 创建场景
