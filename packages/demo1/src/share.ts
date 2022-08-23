@@ -3,10 +3,13 @@ import * as THREE from 'three';
 // 创建场景
 const scene = new THREE.Scene();
 
+// 添加坐标轴辅助器 用于简单模拟3个坐标轴的对象.红色代表 X 轴. 绿色代表 Y 轴. 蓝色代表 Z 轴.
+scene.add(new THREE.AxesHelper(3));
+
 // 创建相机
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 // camera.position.z = 5;
-camera.position.set(0, 0, 5);
+camera.position.set(0, 0, 10);
 
 // 创建一个几何体
 const geometry = new THREE.BoxGeometry(1, 1, 1);
