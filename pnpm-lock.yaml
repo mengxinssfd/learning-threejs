@@ -5,6 +5,7 @@ importers:
   .:
     specifiers:
       '@microsoft/api-extractor': 7.20.1
+      '@types/dat.gui': ^0.7.7
       '@types/fs-extra': ^9.0.13
       '@types/jest': ^28.1.7
       '@types/node': ^16.11.42
@@ -39,6 +40,7 @@ importers:
       vite: ^3.0.9
     devDependencies:
       '@microsoft/api-extractor': 7.20.1
+      '@types/dat.gui': 0.7.7
       '@types/fs-extra': 9.0.13
       '@types/jest': 28.1.7
       '@types/node': 16.11.54
@@ -1001,6 +1003,10 @@ packages:
       '@types/keyv': 3.1.4
       '@types/node': 16.11.54
       '@types/responselike': 1.0.0
+    dev: true
+
+  /@types/dat.gui/0.7.7:
+    resolution: {integrity: sha512-CxLCme0He5Jk3uQwfO/fGZMyNhb/ypANzqX0yU9lviBQMlen5SOvQTBQ/Cd9x5mFlUAK5Tk8RgvTyLj1nYkz+w==}
     dev: true
 
   /@types/fs-extra/9.0.13:
