@@ -31,4 +31,17 @@ document.body.appendChild(renderer.domElement);
 // 使用渲染器将场景和摄像机渲染出来
 renderer.render(scene, camera);
 
+// 浏览器窗口大小改变时更新摄像机和渲染器
+window.addEventListener('resize', () => {
+  // 更新摄像头
+  camera.aspect = window.innerWidth / window.innerHeight;
+  // 更新摄像头的投影矩阵
+  camera.updateProjectionMatrix();
+
+  // 更新渲染器
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  // 设置渲染器的像素比
+  renderer.setPixelRatio(window.devicePixelRatio);
+});
+
 export { renderer, cube, camera, scene };
