@@ -44,4 +44,13 @@ window.addEventListener('resize', () => {
   renderer.setPixelRatio(window.devicePixelRatio);
 });
 
+// 进入/退出全屏
+if (document.fullscreenEnabled) {
+  window.addEventListener('dblclick', () => {
+    document.fullscreenElement === renderer.domElement
+      ? document.exitFullscreen()
+      : renderer.domElement.requestFullscreen();
+  });
+}
+
 export { renderer, cube, camera, scene };
