@@ -1,4 +1,4 @@
-# demo5： 纹理渲染
+# demo7： 纹理渲染
 
 [文档](https://threejs.org/docs/index.html?q=material#api/zh/materials/Material)
 

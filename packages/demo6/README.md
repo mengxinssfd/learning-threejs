@@ -1,4 +1,4 @@
-# demo5： 使用 BufferGeometry 创建几何体
+# demo6： 使用 BufferGeometry 创建几何体
 
 [文档](https://threejs.org/docs/index.html?q=BufferGeometry#api/zh/core/BufferGeometry)
 
