@@ -1,4 +1,4 @@
-# demo8： 环境纹理
+# demo9： 环境纹理
 
 [文档](https://threejs.org/docs/index.html?q=material#api/zh/materials/MeshStandardMaterial)
 
