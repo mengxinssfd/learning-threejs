@@ -9,7 +9,7 @@ const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
 scene.add(sphere);
 
 // 底部平面
-const planeGeometry = new THREE.PlaneGeometry(5, 5);
+const planeGeometry = new THREE.PlaneGeometry(50, 50);
 const planeMaterial = new THREE.MeshStandardMaterial();
 const plane = new THREE.Mesh(planeGeometry, planeMaterial);
 plane.position.set(0, -1, 0);
