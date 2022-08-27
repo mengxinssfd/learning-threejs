@@ -13,6 +13,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 camera.position.set(0, 0, 10);
 
 // new一个renderer并生成一个canvas，也可以使用现有的canvas
+// const renderer = new THREE.WebGLRenderer({ antialias: true }); // 抗锯齿
 const renderer = new THREE.WebGLRenderer();
 // 设置canvas大小
 renderer.setSize(window.innerWidth, window.innerHeight);
