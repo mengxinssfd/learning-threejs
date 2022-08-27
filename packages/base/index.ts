@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
+let width = window.innerWidth;
+let height = window.innerHeight;
 // 创建场景
 const scene = new THREE.Scene();
 
@@ -8,7 +10,7 @@ const scene = new THREE.Scene();
 scene.add(new THREE.AxesHelper(3));
 
 // 创建相机
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 3000);
 // camera.position.z = 5;
 camera.position.set(0, 0, 10);
 
@@ -16,7 +18,7 @@ camera.position.set(0, 0, 10);
 // const renderer = new THREE.WebGLRenderer({ antialias: true }); // 抗锯齿
 const renderer = new THREE.WebGLRenderer();
 // 设置canvas大小
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setSize(width, height);
 // 挂载canvas到body节点上
 document.body.appendChild(renderer.domElement);
 
@@ -31,13 +33,15 @@ controls.enableDamping = true;
 
 // 浏览器窗口大小改变时更新摄像机和渲染器
 window.addEventListener('resize', () => {
+  width = window.innerWidth;
+  height = window.innerHeight;
   // 更新摄像头
-  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.aspect = width / height;
   // 更新摄像头的投影矩阵
   camera.updateProjectionMatrix();
 
   // 更新渲染器
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(width, height);
   // 设置渲染器的像素比
   renderer.setPixelRatio(window.devicePixelRatio);
 });
