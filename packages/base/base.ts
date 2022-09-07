@@ -10,13 +10,20 @@ interface Params {
   scene?: THREE.Scene;
   controls?: OrbitControls;
 }
-export function init({ renderer, camera, scene, controls }: Params = {}): Required<Params> {
+export function init({
+  renderer,
+  camera,
+  scene,
+  controls,
+  AxesHelper = true,
+}: Params & { AxesHelper?: boolean } = {}): Required<Params> {
   // 创建场景
   scene ||= new THREE.Scene();
 
-  // 添加坐标轴辅助器 用于简单模拟3个坐标轴的对象.红色代表 X 轴. 绿色代表 Y 轴. 蓝色代表 Z 轴.
-  scene.add(new THREE.AxesHelper(3));
-
+  if (AxesHelper) {
+    // 添加坐标轴辅助器 用于简单模拟3个坐标轴的对象.红色代表 X 轴. 绿色代表 Y 轴. 蓝色代表 Z 轴.
+    scene.add(new THREE.AxesHelper(3));
+  }
   // 创建相机
   camera ||= new THREE.PerspectiveCamera(75, width / height, 0.1, 3000);
   // camera.position.z = 5;
@@ -35,9 +42,22 @@ export function init({ renderer, camera, scene, controls }: Params = {}): Requir
 
   // 创建轨道控制器
   controls ||= new OrbitControls(camera, renderer.domElement);
-
   // 将其设置为true以启用阻尼（惯性），这将给控制器带来重量感
   controls.enableDamping = true;
+  // 调整视角时显示摄像机的位置
+  let isListened = false;
+  const changeHandler = () => {
+    console.log('camera position', camera?.position);
+  };
+  window.addEventListener('keyup', (ev) => {
+    if (ev.key === 'l') {
+      console.log(`${isListened ? '关闭' : '开启'}摄像机位置log`);
+      isListened
+        ? controls?.removeEventListener('change', changeHandler)
+        : controls?.addEventListener('change', changeHandler);
+      isListened = !isListened;
+    }
+  });
 
   // 浏览器窗口大小改变时更新摄像机和渲染器
   window.addEventListener('resize', () => {
