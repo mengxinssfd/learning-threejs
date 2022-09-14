@@ -2,61 +2,37 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Title</title>
+    <title>demo list</title>
   </head>
   <body>
-    <ul>
-      <li>
-        <a href="/packages/demo1/index.html">demo1：创建基础场景，并添加材质</a>
-      </li>
-      <li>
-        <a href="/packages/demo2/index.html">demo2：使用轨道控制器</a>
-      </li>
-      <li>
-        <a href="/packages/demo3/index.html">demo3：Clock</a>
-      </li>
-      <li>
-        <a href="/packages/demo4/index.html">demo4：使用gsap动画库</a>
-      </li>
-      <li>
-        <a href="/packages/demo5/index.html">demo5：使用dat.gui库</a>
-      </li>
-      <li>
-        <a href="/packages/demo6/index.html">demo6：使用 BufferGeometry 创建几何体</a>
-      </li>
-      <li>
-        <a href="/packages/demo7/index.html">demo7：添加纹理</a>
-      </li>
-      <li>
-        <a href="/packages/demo8/index.html">demo8：标准纹理</a>
-      </li>
-      <li>
-        <a href="/packages/demo9/index.html">demo9：环境纹理</a>
-      </li>
-      <li>
-        <a href="/packages/demo10/index.html">demo10：u型纹理hdr图</a>
-      </li>
-      <li>
-        <a href="/packages/demo11/index.html">demo11：平行光与阴影</a>
-      </li>
-      <li>
-        <a href="/packages/demo12/index.html">demo12：聚光灯光源</a>
-      </li>
-      <li>
-        <a href="/packages/demo13/index.html">demo13：点光源</a>
-      </li>
-      <li>
-        <a href="/packages/demo14/index.html">demo14：水天一色小岛</a>
-      </li>
-      <li>
-        <a href="/packages/demo15/index.html">demo15：地月环绕</a>
-      </li>
-      <li>
-        <a href="/packages/demo16/index.html">demo16：导弹飞行演示</a>
-      </li>
-      <li>
-        <a href="/packages/demo17/index.html">demo17：汽车展示与选配</a>
-      </li>
-    </ul>
+    <ul></ul>
+
+    <script>
+      const list = [
+        'demo1：创建基础场景，并添加材质',
+        'demo2：使用轨道控制器',
+        'demo3：Clock',
+        'demo4：使用gsap动画库',
+        'demo5：使用dat.gui库',
+        'demo6：使用 BufferGeometry 创建几何体',
+        'demo7：添加纹理',
+        'demo8：标准纹理',
+        'demo9：环境纹理',
+        'demo10：u型纹理hdr图',
+        'demo11：平行光与阴影',
+        'demo12：聚光灯光源',
+        'demo13：点光源',
+        'demo14：水天一色小岛',
+        'demo15：地月环绕',
+        'demo16：导弹飞行演示',
+        'demo17：汽车展示与选配',
+        'demo18：汽车展示与选配',
+      ];
+
+      const ul = document.querySelector('ul');
+      ul.innerHTML = list.reduce((prev, cur, index) => {
+        return prev + `<li><a href="/packages/demo${index + 1}/index.html">${cur}</a></li>`;
+      }, '');
+    </script>
   </body>
 </html>
