@@ -6,7 +6,7 @@ const { camera, renderer, scene, controls } = init();
 // 编码
 renderer.outputEncoding = THREE.sRGBEncoding;
 // 摄像机位置
-camera.position.set(-17, 8, 9);
+camera.position.set(-3, 5, -2);
 
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.85;
@@ -70,7 +70,8 @@ function addMoveEvent() {
   const mouse = new THREE.Vector2(1, 1);
   const raycaster = new THREE.Raycaster();
 
-  const colorMap = new Map();
+  let lastActive: THREE.Object3D | null = null;
+  let active: THREE.Object3D | null = null;
   function onMouseMove(event: MouseEvent) {
     event.preventDefault();
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -78,26 +79,30 @@ function addMoveEvent() {
 
     raycaster.setFromCamera(mouse, camera);
 
-    scene.children.forEach((item) => {
+    const find = scene.children.find((item) => {
       if (!(item as THREE.Mesh).isMesh || item.name === 'ground') return;
-
-      const intersection = raycaster.intersectObject(item);
-
-      const material = (item as THREE.Mesh).material as THREE.MeshBasicMaterial;
-      if (intersection.length) {
-        if (!colorMap.has(item)) {
-          colorMap.set(item, material.color.getStyle());
-        }
-        material.color.setColorName('red');
-      } else {
-        colorMap.has(item) && material.color.setStyle(colorMap.get(item));
-      }
+      return raycaster.intersectObject(item).length;
     });
+
+    if (find) {
+      if (find !== active) {
+        lastActive = active;
+        active = find;
+        find.dispatchEvent({ type: 'mouseenter' });
+      } else {
+        lastActive = null;
+      }
+    } else {
+      lastActive = active;
+      active = null;
+    }
+    if (lastActive) lastActive.dispatchEvent({ type: 'mouseout' });
   }
   document.addEventListener('mousemove', onMouseMove);
 }
 
 function createCube() {
+  const colorMap = new Map<THREE.Mesh, string>();
   const material = new THREE.MeshBasicMaterial({
     color: 'lime',
   });
@@ -105,24 +110,54 @@ function createCube() {
 
   const cube = new THREE.Mesh(geometry, material);
 
+  function mouseenterHandler(this: THREE.Mesh) {
+    console.log('mouseenter');
+    const material = this.material as THREE.MeshBasicMaterial;
+    if (!colorMap.has(this)) {
+      colorMap.set(this, material.color.getStyle());
+    }
+    material.color.setColorName('red');
+  }
+  function mouseoutHandler(this: THREE.Mesh) {
+    console.log('mouseout');
+    const material = this.material as THREE.MeshBasicMaterial;
+    colorMap.has(this) && material.color.setStyle(colorMap.get(this) as string);
+  }
+
   cube.position.set(2, 0.5, 0);
   cube.castShadow = true;
 
   scene.add(cube);
 
+  const cube1 = cube.clone(true);
+  cube1.material = new THREE.MeshBasicMaterial({
+    color: 'pink',
+  });
+  cube1.position.set(-2, 0.5, 0);
+  scene.add(cube1);
+
   const cube2 = cube.clone(true);
   cube2.material = new THREE.MeshBasicMaterial({
-    color: 'lime',
+    color: 'yellow',
   });
-  cube2.position.set(2, 0.5, 6);
+  cube2.position.set(0, 0.5, 2);
   scene.add(cube2);
 
   const cube3 = cube.clone(true);
   cube3.material = new THREE.MeshBasicMaterial({
-    color: 'yellow',
+    color: 'blue',
   });
-  cube3.position.set(-2, 0.5, 0);
+  cube3.position.set(0, 0.5, -2);
   scene.add(cube3);
+
+  cube.addEventListener('mouseenter', mouseenterHandler);
+  cube.addEventListener('mouseout', mouseoutHandler);
+  cube1.addEventListener('mouseenter', mouseenterHandler);
+  cube1.addEventListener('mouseout', mouseoutHandler);
+  cube2.addEventListener('mouseenter', mouseenterHandler);
+  cube2.addEventListener('mouseout', mouseoutHandler);
+  cube3.addEventListener('mouseenter', mouseenterHandler);
+  cube3.addEventListener('mouseout', mouseoutHandler);
 }
 
 /**
