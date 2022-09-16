@@ -188,14 +188,14 @@ function loadActions(): Promise<THREE.AnimationClip[]> {
           resolve(action);
         },
         undefined,
-        function () {
-          console.error('load error,', path);
+        function (e) {
+          console.error('load error,', path, e);
         },
       );
     });
   }
 
-  return Promise.all(paths.map(loadAction));
+  return Promise.all(paths.slice(-2).map(loadAction));
 }
 
 /**
@@ -259,7 +259,7 @@ async function setup() {
       }
       mixer.update(delta);
     }
-    console.log('position', model.position);
+    // console.log('position', model.position);
     controls.update();
     renderer.render(scene, camera);
 
