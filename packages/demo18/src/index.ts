@@ -195,7 +195,7 @@ function loadActions(): Promise<THREE.AnimationClip[]> {
     });
   }
 
-  return Promise.all(paths.slice(-2).map(loadAction));
+  return Promise.all(paths.map(loadAction));
 }
 
 /**
