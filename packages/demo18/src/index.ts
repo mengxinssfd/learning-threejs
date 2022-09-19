@@ -221,6 +221,21 @@ async function setup() {
   let actions: THREE.AnimationClip[] = [];
   loadActions().then((res) => {
     actions = res;
+    const actionsGui = gui.addFolder('actions');
+    actionsGui.open();
+    const obj: any = {};
+    const mx = new THREE.AnimationMixer(model);
+    res.forEach((item) => {
+      const act = mx.clipAction(item);
+      obj[item.name] = () => {
+        mixer = mx;
+        act.reset().play();
+        action?.crossFadeTo(act, 0.1, true);
+        action = act;
+      };
+      console.log(item, obj);
+      actionsGui.add(obj, item.name, item.name);
+    });
     action = playNext();
   });
   // model.animations.push(...actions);
