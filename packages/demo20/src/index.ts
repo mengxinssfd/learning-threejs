@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import dat from 'dat.gui';
+import { ACTION, ActionEvents, useActionMachine } from './useActionMachine';
 
 const { camera, renderer, scene } = init();
 // 编码
@@ -124,7 +125,16 @@ function loadActions(): Promise<THREE.AnimationClip[]> {
     'sword and shield walk back.fbx',
     'sword and shield walk.fbx',
     'sword and shield jump.fbx',
+    'sword and shield power jump.fbx',
     'sword and shield attack.fbx',
+    'sword and shield block.fbx',
+    'sword and shield crouch idle.fbx',
+    'sword and shield crouch block.fbx',
+    'sword and shield turn left.fbx',
+    'sword and shield turn right.fbx',
+    'sword and shield crouch attack.fbx',
+    'sword and shield run.fbx',
+    'sword and shield run back.fbx',
   ];
 
   function loadAction(path: string): Promise<THREE.AnimationClip> {
@@ -168,15 +178,10 @@ function createGridFloor() {
   scene.add(grid);
   return grid;
 }
-enum ACTION {
-  walk = 'walk',
-  idle = 'idle',
-  walkBack = 'walkBack',
-  jump = 'jump',
-  attack = 'attack',
-}
+
 const actions: Partial<Record<ACTION, THREE.AnimationAction>> = {};
 function addRoleController(model: THREE.Object3D, mixer: THREE.AnimationMixer) {
+  const actionMachine = useActionMachine(actions, mixer);
   const state = {
     forward: false,
     back: false,
@@ -184,6 +189,9 @@ function addRoleController(model: THREE.Object3D, mixer: THREE.AnimationMixer) {
     right: false,
     jump: false,
     attack: false,
+    shift: false,
+    block: false,
+    crouch: false,
   };
   function setState(e: KeyboardEvent, bool: boolean) {
     switch (e.code) {
@@ -205,44 +213,83 @@ function addRoleController(model: THREE.Object3D, mixer: THREE.AnimationMixer) {
       case 'KeyJ':
         state.attack = bool;
         break;
+      case 'KeyQ':
+        state.block = bool;
+        break;
+      case 'KeyC':
+        state.crouch = bool;
+        break;
+      case 'ShiftLeft':
+        state.shift = bool;
+        break;
     }
   }
 
   window.addEventListener('keydown', (e) => {
-    console.log(e.code);
+    console.log('keydown', e.code);
     setState(e, true);
   });
   window.addEventListener('keyup', (e) => {
+    console.log('keyup', e.code);
     setState(e, false);
   });
 
-  function runAction(actionType: ACTION) {
-    let activeAction: THREE.AnimationAction | null = null;
-    for (const k in actions) {
-      if (actions[k].isRunning()) activeAction = actions[k];
-    }
-    const action = actions[actionType] as THREE.AnimationAction;
-    console.log(activeAction, action);
-    if (action === activeAction) return;
-    action.reset();
-    action.play();
-    activeAction?.crossFadeTo(action, 0.1, false);
-    return action.getMixer();
-  }
+  actionMachine.start();
   return function () {
-    if (state.forward) {
-      runAction(ACTION.walk);
-    } else if (state.back) {
-      runAction(ACTION.walkBack);
-    } else if (state.jump) {
-      runAction(ACTION.jump)?.addEventListener('loop', function handler() {
-        runAction(ACTION.idle)?.removeEventListener('loop', handler);
-      });
-      // mixer.addEventListener('loop',)
-    } else if (state.attack) {
-      runAction(ACTION.attack);
+    if (state.shift) {
+      if (state.forward) {
+        actionMachine.send(ActionEvents.run);
+      } else if (state.back) {
+        actionMachine.send(ActionEvents.runBack);
+      } else if (state.left) {
+        actionMachine.send(ActionEvents.turnLeft);
+      } else if (state.right) {
+        actionMachine.send(ActionEvents.turnRight);
+      }
+      if (state.jump) {
+        actionMachine.send(ActionEvents.jump);
+      }
+
+      return;
     }
-    // actions[ACTION.walk]?.play();
+    if (state.block) {
+      if (actionMachine.getSnapshot().matches('jumping')) {
+        actionMachine.send('stop');
+      }
+      if (state.crouch) {
+        if (state.attack) {
+          actionMachine.send(ActionEvents.crouchAttack);
+        } else {
+          actionMachine.send(ActionEvents.crouchBlock);
+        }
+      } else {
+        actionMachine.send('block');
+      }
+    } else if (state.attack) {
+      actionMachine.send('attack');
+    } else if (state.forward) {
+      actionMachine.send(ActionEvents.walk);
+      if (state.jump) {
+        actionMachine.send(ActionEvents.jump);
+      }
+    } else if (state.back) {
+      actionMachine.send(ActionEvents.walkBack);
+    } else if (state.left) {
+      actionMachine.send(ActionEvents.turnLeft);
+    } else if (state.right) {
+      actionMachine.send(ActionEvents.turnRight);
+    } else if (state.jump) {
+      actionMachine.send('jump');
+    } else if (state.crouch) {
+      actionMachine.send('crouch');
+      if (state.attack) {
+        actionMachine.send(ActionEvents.attack);
+      }
+    } else {
+      // if (!actionMachine.getSnapshot().matches('attacking')) {
+      actionMachine.send('stop');
+      // }
+    }
   };
 }
 
@@ -254,12 +301,12 @@ async function setup() {
   const model = await loadModel();
   camera.lookAt(model.position);
   const mixer = new THREE.AnimationMixer(model);
-  const updateRole = addRoleController(model, mixer);
+  let updateRole: Function | undefined;
   loadActions().then((res) => {
     res.forEach((item) => {
       actions[item.name] = mixer.clipAction(item);
     });
-    actions[ACTION.idle]?.play();
+    updateRole = addRoleController(model, mixer);
   });
 
   const clock = new THREE.Clock();
@@ -269,7 +316,7 @@ async function setup() {
 
     const delta = clock.getDelta();
 
-    updateRole();
+    updateRole?.();
     if (mixer) {
       mixer.update(delta);
     }

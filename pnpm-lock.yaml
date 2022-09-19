@@ -43,6 +43,7 @@ importers:
       typescript: ^4.7.4
       vite: ^3.0.9
       vue: ^3.2.38
+      xstate: ^4.33.6
     devDependencies:
       '@microsoft/api-extractor': 7.20.1
       '@types/dat.gui': 0.7.7
@@ -83,6 +84,7 @@ importers:
       typescript: 4.7.4
       vite: 3.0.9_sass@1.54.8
       vue: 3.2.38
+      xstate: 4.33.6
 
 packages:
 
@@ -6612,6 +6614,10 @@ packages:
 
   /xmlchars/2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
+    dev: true
+
+  /xstate/4.33.6:
+    resolution: {integrity: sha512-A5R4fsVKADWogK2a43ssu8Fz1AF077SfrKP1ZNyDBD8lNa/l4zfR//Luofp5GSWehOQr36Jp0k2z7b+sH2ivyg==}
     dev: true
 
   /xtend/4.0.2:
