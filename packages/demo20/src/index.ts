@@ -5,7 +5,7 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import dat from 'dat.gui';
 import { ACTION, ActionEvents, useActionMachine } from './useActionMachine';
 
-const { camera, renderer, scene } = init();
+const { camera, renderer, scene, controls } = init();
 // 编码
 renderer.outputEncoding = THREE.sRGBEncoding;
 // 摄像机位置
@@ -181,7 +181,7 @@ function createGridFloor() {
 
 const actions: Partial<Record<ACTION, THREE.AnimationAction>> = {};
 function addRoleController(model: THREE.Object3D, mixer: THREE.AnimationMixer) {
-  const actionMachine = useActionMachine(actions, mixer);
+  const actionService = useActionMachine(actions, mixer);
   const state = {
     forward: false,
     back: false,
@@ -234,62 +234,65 @@ function addRoleController(model: THREE.Object3D, mixer: THREE.AnimationMixer) {
     setState(e, false);
   });
 
-  actionMachine.start();
-  return function () {
-    if (state.shift) {
-      if (state.forward) {
-        actionMachine.send(ActionEvents.run);
-      } else if (state.back) {
-        actionMachine.send(ActionEvents.runBack);
-      } else if (state.left) {
-        actionMachine.send(ActionEvents.turnLeft);
-      } else if (state.right) {
-        actionMachine.send(ActionEvents.turnRight);
-      }
-      if (state.jump) {
-        actionMachine.send(ActionEvents.jump);
-      }
+  actionService.start();
+  return {
+    state,
+    update() {
+      if (state.shift) {
+        if (state.forward) {
+          actionService.send(ActionEvents.run);
+        } else if (state.back) {
+          actionService.send(ActionEvents.runBack);
+        } else if (state.left) {
+          actionService.send(ActionEvents.turnLeft);
+        } else if (state.right) {
+          actionService.send(ActionEvents.turnRight);
+        }
+        if (state.jump) {
+          actionService.send(ActionEvents.jump);
+        }
 
-      return;
-    }
-    if (state.block) {
-      if (actionMachine.getSnapshot().matches('jumping')) {
-        actionMachine.send('stop');
+        return;
       }
-      if (state.crouch) {
-        if (state.attack) {
-          actionMachine.send(ActionEvents.crouchAttack);
+      if (state.block) {
+        if (actionService.getSnapshot().matches('jumping')) {
+          actionService.send('stop');
+        }
+        if (state.crouch) {
+          if (state.attack) {
+            actionService.send(ActionEvents.crouchAttack);
+          } else {
+            actionService.send(ActionEvents.crouchBlock);
+          }
         } else {
-          actionMachine.send(ActionEvents.crouchBlock);
+          actionService.send('block');
+        }
+      } else if (state.attack) {
+        actionService.send('attack');
+      } else if (state.forward) {
+        actionService.send(ActionEvents.walk);
+        if (state.jump) {
+          actionService.send(ActionEvents.jump);
+        }
+      } else if (state.back) {
+        actionService.send(ActionEvents.walkBack);
+      } else if (state.left) {
+        actionService.send(ActionEvents.turnLeft);
+      } else if (state.right) {
+        actionService.send(ActionEvents.turnRight);
+      } else if (state.jump) {
+        actionService.send('jump');
+      } else if (state.crouch) {
+        actionService.send('crouch');
+        if (state.attack) {
+          actionService.send(ActionEvents.attack);
         }
       } else {
-        actionMachine.send('block');
+        // if (!actionMachine.getSnapshot().matches('attacking')) {
+        actionService.send('stop');
+        // }
       }
-    } else if (state.attack) {
-      actionMachine.send('attack');
-    } else if (state.forward) {
-      actionMachine.send(ActionEvents.walk);
-      if (state.jump) {
-        actionMachine.send(ActionEvents.jump);
-      }
-    } else if (state.back) {
-      actionMachine.send(ActionEvents.walkBack);
-    } else if (state.left) {
-      actionMachine.send(ActionEvents.turnLeft);
-    } else if (state.right) {
-      actionMachine.send(ActionEvents.turnRight);
-    } else if (state.jump) {
-      actionMachine.send('jump');
-    } else if (state.crouch) {
-      actionMachine.send('crouch');
-      if (state.attack) {
-        actionMachine.send(ActionEvents.attack);
-      }
-    } else {
-      // if (!actionMachine.getSnapshot().matches('attacking')) {
-      actionMachine.send('stop');
-      // }
-    }
+    },
   };
 }
 
@@ -301,20 +304,76 @@ async function setup() {
   const model = await loadModel();
   camera.lookAt(model.position);
   const mixer = new THREE.AnimationMixer(model);
-  let updateRole: Function | undefined;
-  loadActions().then((res) => {
+  await loadActions().then((res) => {
     res.forEach((item) => {
       actions[item.name] = mixer.clipAction(item);
     });
-    updateRole = addRoleController(model, mixer);
   });
 
+  const { update: updateRole, state } = addRoleController(model, mixer);
+
+  let prevTime = performance.now();
   const clock = new THREE.Clock();
+  const raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, 10);
+  const velocity = new THREE.Vector3();
+  const direction = new THREE.Vector3();
+  const vertex = new THREE.Vector3();
+  let canJump = false;
+  const objects = [];
+
   function render() {
     requestAnimationFrame(render);
     stat.begin();
 
     const delta = clock.getDelta();
+
+    const time = performance.now();
+
+    if (controls.isLocked === true) {
+      raycaster.ray.origin.copy(controls.getObject().position);
+      raycaster.ray.origin.y -= 10;
+
+      const intersections = raycaster.intersectObjects(objects, false);
+
+      const onObject = intersections.length > 0;
+
+      const delta = (time - prevTime) / 1000;
+
+      velocity.x -= velocity.x * 10 * delta;
+      velocity.z -= velocity.z * 10 * delta;
+
+      velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
+
+      direction.z = Number(state.forward) - Number(state.back);
+      direction.x = Number(state.right) - Number(state.left);
+      direction.normalize(); // this ensures consistent movements in all directions
+
+      if (state.forward || state.back) velocity.z -= direction.z * 10.0 * delta;
+      if (state.left || state.right) velocity.x -= direction.x * 10.0 * delta;
+
+      if (onObject) {
+        velocity.y = Math.max(0, velocity.y);
+        canJump = true;
+      }
+
+      const x = -velocity.x * delta;
+      const z = -velocity.z * delta;
+      controls.moveRight(x);
+      controls.moveForward(z);
+      model.position.x += x;
+      model.position.z += z;
+
+      // controls.getObject().position.y += velocity.y * delta; // new behavior
+
+      // if (controls.getObject().position.y < 10) {
+      //   velocity.y = 0;
+      //   controls.getObject().position.y = 10;
+      //
+      //   canJump = true;
+      // }
+    }
+
+    prevTime = time;
 
     updateRole?.();
     if (mixer) {
